@@ -7,6 +7,7 @@ import ContasPagar from './pages/ContasPagar'
 import ContasReceber from './pages/ContasReceber'
 import Cadastros from './pages/Cadastros'
 import Faturamento from './pages/Faturamento'
+import NotificationBanner from './components/layout/NotificationBanner'
 
 import { Toaster } from 'react-hot-toast'
 
@@ -16,6 +17,7 @@ export default function App() {
       <AppProvider>
         <BrowserRouter>
           <Toaster position="top-right" toastOptions={{ style: { background: 'var(--card-bg)', color: 'var(--text-primary)', border: '1px solid var(--border)' } }} />
+          <NotificationBanner />
           <div className="app-container">
             <Routes>
               <Route path="/" element={<Dashboard />} />

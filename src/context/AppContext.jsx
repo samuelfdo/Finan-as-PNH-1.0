@@ -18,6 +18,18 @@ export function AppProvider({ children }) {
     })
 
     const [loading, setLoading] = useState(true)
+    const [notifications, setNotifications] = useState([])
+    const [bannerQueue, setBannerQueue] = useState([])
+
+    // Remove notification from bell icon
+    const removeNotification = (id) => {
+        setNotifications(prev => prev.filter(n => n.id !== id))
+    }
+
+    // Clear all notifications
+    const clearNotifications = () => {
+        setNotifications([])
+    }
 
     // Carregar todos os dados do Supabase
     const loadData = async () => {
@@ -97,11 +109,19 @@ export function AppProvider({ children }) {
                 const notifId = `${tipoLabel}_${c.id}_${diffDays}`;
                 if (ALREADY_NOTIFIED.has(notifId)) return;
 
-                if (diffDays === 0) {
-                    toast(<span><b>{tipoLabel} Vence Hoje:</b><br />{c.descricao}</span>, { icon: '🚨', duration: 5000 });
-                } else {
-                    toast(<span><b>{tipoLabel} Vence em {diffDays} dia(s):</b><br />{c.descricao}</span>, { icon: '⚠️', duration: 5000 });
-                }
+                const desc = `Vence ${diffDays === 0 ? 'Hoje' : `em ${diffDays} dia(s)`}: ${c.descricao}`;
+
+                const notif = {
+                    id: notifId,
+                    type: tipoLabel.includes('Pagar') ? 'Pagar' : 'Receber',
+                    title: tipoLabel,
+                    description: desc,
+                    date: new Date().toISOString()
+                };
+
+                setNotifications(prev => [notif, ...prev]);
+                setBannerQueue(prev => [...prev, notif]);
+
                 ALREADY_NOTIFIED.add(notifId);
             });
         };
@@ -268,7 +288,8 @@ export function AppProvider({ children }) {
             addContaReceber, updateContaReceber, deleteContaReceber,
             addCadastro, updateCadastro, deleteCadastro,
             updateFaturamento,
-            totalPagar, totalReceber, totalFaturamentoMes, saldo
+            totalPagar, totalReceber, totalFaturamentoMes, saldo,
+            notifications, bannerQueue, setBannerQueue, clearNotifications, removeNotification
         }}>
             {children}
         </AppContext.Provider>
