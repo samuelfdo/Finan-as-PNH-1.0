@@ -96,10 +96,14 @@ export default function ContasPagar() {
     const [editItem, setEditItem] = useState(null)
     const [filterStatus, setFilterStatus] = useState('todos')
     const [search, setSearch] = useState('')
+    const [dateFrom, setDateFrom] = useState('')
+    const [dateTo, setDateTo] = useState('')
 
     const filtered = data.contasPagar.filter(c => {
         if (filterStatus !== 'todos' && c.status !== filterStatus) return false
         if (search && !c.descricao.toLowerCase().includes(search.toLowerCase()) && !c.fornecedor?.toLowerCase().includes(search.toLowerCase())) return false
+        if (dateFrom && c.vencimento < dateFrom) return false
+        if (dateTo && c.vencimento > dateTo) return false
         return true
     }).sort((a, b) => new Date(a.vencimento) - new Date(b.vencimento))
 
@@ -125,14 +129,25 @@ export default function ContasPagar() {
                     </div>
                 </div>
 
-                {/* Search */}
-                <input
-                    className="input-field"
-                    placeholder="🔍  Buscar conta ou fornecedor..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    style={{ marginBottom: '10px' }}
-                />
+                {/* Search and Date Filters */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '10px' }}>
+                    <input
+                        className="input-field"
+                        placeholder="🔍  Buscar conta ou fornecedor..."
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                    />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                        <div>
+                            <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>De</label>
+                            <input type="date" className="input-field" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
+                        </div>
+                        <div>
+                            <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Até</label>
+                            <input type="date" className="input-field" value={dateTo} onChange={e => setDateTo(e.target.value)} />
+                        </div>
+                    </div>
+                </div>
 
                 {/* Filters */}
                 <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', marginBottom: '12px', paddingBottom: '4px' }}>

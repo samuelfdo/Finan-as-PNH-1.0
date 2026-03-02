@@ -1,7 +1,9 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import toast from 'react-hot-toast'
 
 const AppContext = createContext()
+const ALREADY_NOTIFIED = new Set()
 
 export function AppProvider({ children }) {
     const [data, setData] = useState({
@@ -74,6 +76,40 @@ export function AppProvider({ children }) {
     useEffect(() => {
         loadData()
     }, [])
+
+    // Notificações de Vencimento
+    useEffect(() => {
+        if (loading) return;
+
+        const checkNotifications = (lista, tipoLabel, statusFechado) => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            lista.forEach(c => {
+                if (c.status === statusFechado) return;
+
+                const dueDate = new Date(c.vencimento + 'T00:00:00');
+                const diffTime = dueDate.getTime() - today.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays < 0 || diffDays > 3) return; // Só notificar de 0 a 3 dias
+
+                const notifId = `${tipoLabel}_${c.id}_${diffDays}`;
+                if (ALREADY_NOTIFIED.has(notifId)) return;
+
+                if (diffDays === 0) {
+                    toast(<span><b>{tipoLabel} Vence Hoje:</b><br />{c.descricao}</span>, { icon: '🚨', duration: 5000 });
+                } else {
+                    toast(<span><b>{tipoLabel} Vence em {diffDays} dia(s):</b><br />{c.descricao}</span>, { icon: '⚠️', duration: 5000 });
+                }
+                ALREADY_NOTIFIED.add(notifId);
+            });
+        };
+
+        checkNotifications(data.contasPagar, 'Conta a Pagar', 'pago');
+        checkNotifications(data.contasReceber, 'Conta a Receber', 'recebido');
+
+    }, [data.contasPagar, data.contasReceber, loading]);
 
     // ==========================================
     // CRUD Contas a Pagar

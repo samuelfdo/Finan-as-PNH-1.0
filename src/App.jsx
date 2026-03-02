@@ -8,11 +8,14 @@ import ContasReceber from './pages/ContasReceber'
 import Cadastros from './pages/Cadastros'
 import Faturamento from './pages/Faturamento'
 
+import { Toaster } from 'react-hot-toast'
+
 export default function App() {
   return (
     <ThemeProvider>
       <AppProvider>
         <BrowserRouter>
+          <Toaster position="top-right" toastOptions={{ style: { background: 'var(--card-bg)', color: 'var(--text-primary)', border: '1px solid var(--border)' } }} />
           <div className="app-container">
             <Routes>
               <Route path="/" element={<Dashboard />} />
