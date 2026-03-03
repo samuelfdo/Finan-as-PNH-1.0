@@ -51,6 +51,7 @@ export default function NotificationBanner() {
 
     const handleTouchStart = (e) => {
         startY.current = e.touches[0].clientY;
+        currentY.current = e.touches[0].clientY;
         if (bannerRef.current) {
             bannerRef.current.style.transition = 'none';
         }
