@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { Plus, Trash2, AlertCircle, CheckCircle, Clock, ChevronDown } from 'lucide-react'
 import Header from '../components/layout/Header'
+import SearchableSelect from '../components/ui/SearchableSelect'
 import { maskCurrency, parseCurrency } from '../utils/masks'
 
 const fmt = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
@@ -14,6 +15,11 @@ const statusConfig = {
 }
 
 function FormModal({ onClose, onSave, initial }) {
+    const { data } = useApp()
+    const clientesOpts = data.clientes
+        .filter(c => c.tipo === 'cliente')
+        .map(c => ({ value: c.nome, label: c.nome, subLabel: c.cpf_cnpj || 'Sem CNPJ/CPF' }))
+
     const [form, setForm] = useState(initial || {
         descricao: '', valor: '', vencimento: '', cliente: '', status: 'pendente'
     })
@@ -53,9 +59,15 @@ function FormModal({ onClose, onSave, initial }) {
                             <input className="input-field" type="date" value={form.vencimento} onChange={e => set('vencimento', e.target.value)} />
                         </div>
                     </div>
-                    <div>
+                    <div style={{ zIndex: 60 }}>
                         <label style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '500', display: 'block', marginBottom: '6px' }}>Cliente</label>
-                        <input className="input-field" placeholder="Nome do cliente" value={form.cliente} onChange={e => set('cliente', e.target.value)} />
+                        <SearchableSelect
+                            options={clientesOpts}
+                            value={form.cliente}
+                            onChange={v => set('cliente', v)}
+                            placeholder="Selecione um cliente..."
+                            emptyText="Nenhum cliente encontrado"
+                        />
                     </div>
                     <div>
                         <label style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '500', display: 'block', marginBottom: '6px' }}>Status</label>
@@ -82,11 +94,17 @@ export default function ContasReceber() {
     const [editItem, setEditItem] = useState(null)
     const [filterStatus, setFilterStatus] = useState('todos')
     const [search, setSearch] = useState('')
+    const [filterCliente, setFilterCliente] = useState('')
     const [dateFrom, setDateFrom] = useState('')
     const [dateTo, setDateTo] = useState('')
 
+    const clientesOpts = data.clientes
+        .filter(c => c.tipo === 'cliente')
+        .map(c => ({ value: c.nome, label: c.nome, subLabel: c.cpf_cnpj || 'Sem CNPJ/CPF' }))
+
     const filtered = data.contasReceber.filter(c => {
         if (filterStatus !== 'todos' && c.status !== filterStatus) return false
+        if (filterCliente && c.cliente !== filterCliente) return false
         if (search && !c.descricao.toLowerCase().includes(search.toLowerCase()) && !c.cliente?.toLowerCase().includes(search.toLowerCase())) return false
         if (dateFrom && c.vencimento < dateFrom) return false
         if (dateTo && c.vencimento > dateTo) return false
@@ -121,7 +139,17 @@ export default function ContasReceber() {
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', zIndex: 40 }}>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                            <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Cliente</label>
+                            <SearchableSelect
+                                options={clientesOpts}
+                                value={filterCliente}
+                                onChange={setFilterCliente}
+                                placeholder="Todos os clientes..."
+                                emptyText="Nenhum cliente encontrado"
+                            />
+                        </div>
                         <div>
                             <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>De</label>
                             <input type="date" className="input-field" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />

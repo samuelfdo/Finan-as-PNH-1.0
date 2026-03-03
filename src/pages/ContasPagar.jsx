@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useApp } from '../context/AppContext'
 import { Plus, Trash2, X, CheckCircle, AlertCircle, Clock, ChevronDown } from 'lucide-react'
 import Header from '../components/layout/Header'
+import SearchableSelect from '../components/ui/SearchableSelect'
 import { maskCurrency, parseCurrency } from '../utils/masks'
 
 const fmt = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
@@ -16,6 +17,11 @@ const statusConfig = {
 }
 
 function FormModal({ onClose, onSave, initial }) {
+    const { data } = useApp()
+    const fornecedoresOpts = data.clientes
+        .filter(c => c.tipo === 'fornecedor')
+        .map(f => ({ value: f.nome, label: f.nome, subLabel: f.cpf_cnpj || 'Sem CNPJ/CPF' }))
+
     const [form, setForm] = useState(initial || {
         descricao: '', valor: '', vencimento: '', categoria: 'Mercadorias',
         fornecedor: '', status: 'pendente'
@@ -56,9 +62,15 @@ function FormModal({ onClose, onSave, initial }) {
                             <input className="input-field" type="date" value={form.vencimento} onChange={e => set('vencimento', e.target.value)} />
                         </div>
                     </div>
-                    <div>
+                    <div style={{ zIndex: 60 }}>
                         <label style={{ fontSize: '12px', color: 'var(--text-secondary)', fontWeight: '500', display: 'block', marginBottom: '6px' }}>Fornecedor</label>
-                        <input className="input-field" placeholder="Nome do fornecedor" value={form.fornecedor} onChange={e => set('fornecedor', e.target.value)} />
+                        <SearchableSelect
+                            options={fornecedoresOpts}
+                            value={form.fornecedor}
+                            onChange={v => set('fornecedor', v)}
+                            placeholder="Selecione um fornecedor..."
+                            emptyText="Nenhum fornecedor encontrado"
+                        />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                         <div>
@@ -96,11 +108,17 @@ export default function ContasPagar() {
     const [editItem, setEditItem] = useState(null)
     const [filterStatus, setFilterStatus] = useState('todos')
     const [search, setSearch] = useState('')
+    const [filterFornecedor, setFilterFornecedor] = useState('')
     const [dateFrom, setDateFrom] = useState('')
     const [dateTo, setDateTo] = useState('')
 
+    const fornecedoresOpts = data.clientes
+        .filter(c => c.tipo === 'fornecedor')
+        .map(f => ({ value: f.nome, label: f.nome, subLabel: f.cpf_cnpj || 'Sem CNPJ/CPF' }))
+
     const filtered = data.contasPagar.filter(c => {
         if (filterStatus !== 'todos' && c.status !== filterStatus) return false
+        if (filterFornecedor && c.fornecedor !== filterFornecedor) return false
         if (search && !c.descricao.toLowerCase().includes(search.toLowerCase()) && !c.fornecedor?.toLowerCase().includes(search.toLowerCase())) return false
         if (dateFrom && c.vencimento < dateFrom) return false
         if (dateTo && c.vencimento > dateTo) return false
@@ -137,7 +155,17 @@ export default function ContasPagar() {
                         value={search}
                         onChange={e => setSearch(e.target.value)}
                     />
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', zIndex: 40 }}>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                            <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>Fornecedor</label>
+                            <SearchableSelect
+                                options={fornecedoresOpts}
+                                value={filterFornecedor}
+                                onChange={setFilterFornecedor}
+                                placeholder="Todos os fornecedores..."
+                                emptyText="Nenhum fornecedor encontrado"
+                            />
+                        </div>
                         <div>
                             <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '2px' }}>De</label>
                             <input type="date" className="input-field" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
