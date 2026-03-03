@@ -109,13 +109,17 @@ export function AppProvider({ children }) {
                 const notifId = `${tipoLabel}_${c.id}_${diffDays}`;
                 if (ALREADY_NOTIFIED.has(notifId)) return;
 
-                const desc = `Vence ${diffDays === 0 ? 'Hoje' : `em ${diffDays} dia(s)`}: ${c.descricao}`;
+                const isPagar = tipoLabel.includes('Pagar');
+                const tipoStr = isPagar ? 'Conta a pagar' : 'Conta a receber';
+                const titleStr = diffDays === 0
+                    ? `${tipoStr} vence hoje`
+                    : `${tipoStr} vence em ${diffDays} dia(s)`;
 
                 const notif = {
                     id: notifId,
-                    type: tipoLabel.includes('Pagar') ? 'Pagar' : 'Receber',
-                    title: tipoLabel,
-                    description: desc,
+                    type: isPagar ? 'Pagar' : 'Receber',
+                    title: titleStr,
+                    description: c.descricao,
                     date: new Date().toISOString()
                 };
 
