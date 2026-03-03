@@ -59,7 +59,6 @@ export default function SearchableSelect({ options, value, onChange, placeholder
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
                                     style={{ paddingLeft: '36px' }}
-                                    autoFocus
                                 />
                             </div>
                         </div>
